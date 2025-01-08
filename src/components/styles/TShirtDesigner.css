@@ -15,6 +15,15 @@
     height: 400px;
     border: 2px solid #ff0000;
     margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .placeholder-text {
+    color: #888;
+    font-size: 16px;
+    text-align: center;
   }
   
   .tshirt-image {

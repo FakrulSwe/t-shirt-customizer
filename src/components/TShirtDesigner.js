@@ -2,11 +2,23 @@ import React, { useState, useRef } from "react";
 import "./styles/TShirtDesigner.css";
 
 const TShirtDesigner = () => {
-  const [logo, setLogo] = useState(null);
+  const [tShirt, setTShirt] = useState(null); // For T-shirt image
+  const [logo, setLogo] = useState(null); // For logo image
   const [position, setPosition] = useState({ x: 50, y: 50 });
   const [logoSize, setLogoSize] = useState(100); // Logo width in pixels
   const tShirtRef = useRef(null);
 
+  // Handle T-shirt image upload
+  const handleTShirtUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => setTShirt(reader.result);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Handle logo upload
   const handleLogoUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -16,6 +28,7 @@ const TShirtDesigner = () => {
     }
   };
 
+  // Handle drag and drop of logo
   const handleDrag = (e) => {
     const rect = tShirtRef.current.getBoundingClientRect();
     setPosition({
@@ -24,10 +37,12 @@ const TShirtDesigner = () => {
     });
   };
 
+  // Handle resizing of logo
   const handleResize = (e) => {
     setLogoSize(Number(e.target.value));
   };
 
+  // Save the final image (T-shirt + Logo)
   const saveFinalImage = () => {
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
@@ -37,39 +52,47 @@ const TShirtDesigner = () => {
     canvas.height = tShirtImage.height;
 
     // Draw T-shirt
-    ctx.drawImage(tShirtImage, 0, 0, canvas.width, canvas.height);
+    const tShirtBackground = new Image();
+    tShirtBackground.src = tShirt;
+    tShirtBackground.onload = () => {
+      ctx.drawImage(tShirtBackground, 0, 0, canvas.width, canvas.height);
 
-    // Draw Logo
-    if (logo) {
-      const img = new Image();
-      img.src = logo;
-      img.onload = () => {
-        ctx.drawImage(
-          img,
-          position.x,
-          position.y,
-          logoSize,
-          (img.height / img.width) * logoSize
-        );
+      // Draw Logo
+      if (logo) {
+        const logoImage = new Image();
+        logoImage.src = logo;
+        logoImage.onload = () => {
+          ctx.drawImage(
+            logoImage,
+            position.x,
+            position.y,
+            logoSize,
+            (logoImage.height / logoImage.width) * logoSize
+          );
 
-        // Save the final image
-        const finalImage = canvas.toDataURL("image/png");
-        const link = document.createElement("a");
-        link.href = finalImage;
-        link.download = "custom_tshirt.png";
-        link.click();
-      };
-    }
+          // Save the final image
+          const finalImage = canvas.toDataURL("image/png");
+          const link = document.createElement("a");
+          link.href = finalImage;
+          link.download = "custom_tshirt.png";
+          link.click();
+        };
+      }
+    };
   };
 
   return (
     <div className="designer-container">
       <div className="tshirt-area" ref={tShirtRef}>
-        <img
-          src="https://via.placeholder.com/300x400.png?text=T-Shirt"
-          alt="T-Shirt"
-          className="tshirt-image"
-        />
+        {tShirt ? (
+          <img
+            src={tShirt}
+            alt="T-Shirt"
+            className="tshirt-image"
+          />
+        ) : (
+          <p className="placeholder-text">Upload a T-Shirt image</p>
+        )}
         {logo && (
           <img
             src={logo}
@@ -86,8 +109,14 @@ const TShirtDesigner = () => {
           />
         )}
       </div>
+
       <div className="controls">
-        <input type="file" onChange={handleLogoUpload} />
+        <label htmlFor="tshirt-upload">Upload T-Shirt:</label>
+        <input type="file" id="tshirt-upload" onChange={handleTShirtUpload} />
+
+        <label htmlFor="logo-upload">Upload Logo:</label>
+        <input type="file" id="logo-upload" onChange={handleLogoUpload} />
+
         {logo && (
           <>
             <label htmlFor="logo-size">Resize Logo:</label>
